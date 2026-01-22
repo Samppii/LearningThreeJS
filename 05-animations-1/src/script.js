@@ -6,6 +6,10 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 
+// AxesHelper
+const axesHelper = new THREE.AxesHelper(2)
+scene.add(axesHelper)
+
 // Object
 const geometry = new THREE.BoxGeometry(1, 1, 1)
 const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
@@ -28,4 +32,20 @@ const renderer = new THREE.WebGLRenderer({
     canvas: canvas
 })
 renderer.setSize(sizes.width, sizes.height)
-renderer.render(scene, camera)
+
+
+// Animate
+
+const tick =()=>
+{
+  // Update Objects
+  mesh.rotation.y += 0.01
+
+  // Render
+  renderer.render(scene, camera)
+
+  // Call tick again on the next frame
+  window.requestAnimationFrame(tick)
+}
+
+tick()
