@@ -22,8 +22,14 @@ const mesh = new THREE.Mesh(
 )
 scene.add(mesh)
 
+// AxesHelper
+const axesHelper = new THREE.AxesHelper(2)
+scene.add(axesHelper)
+
 // Camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height)
+//const camera = new THREE.OrthographicCamera(-1, 1,1, -1, 0.1, 100)
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 1, 100)
+
 camera.position.x = 2
 camera.position.y = 2
 camera.position.z = 2
