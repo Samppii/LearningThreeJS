@@ -73,5 +73,124 @@ const camera = new THREE.OrthographicCamera(-1 * aspectRatio, 1 * aspectRatio, 1
 
 This will result in a render area width larger than the render area height because our canvas width is larger that its height.
 
+#### Custom Controls
+
+Going back to the #PerspectiveCamera lets move the camera so it faces the cube, and remove the mesh rotation in the mesh function.
+
+```
+// Camera
+const camera = new THREE.PerspectiveCamera(75, sizes.width/ sizes.height, 1, 1000)
+
+// const aspectRatio = sizes.width / sizes.height
+// const camear = new THREE.OrthographicCamera(-1 * aspectRatio, 1 * aspectRatio, 1, -1, 0.1, 100)
+
+// camera.position.x = 2
+// camera.position.y = 2
+camera.position.z = 3
+camera.lookAt(mesh.position)
+scene.add(camera)
+```
+
+To add camera control with our mouse. First of all, we want to know the mouse coordinates. We can do that using native JavaScript by listening to the mousemove event with addEventListener.
+
+```
+// Cursor
+window.addEventListener('mousemove', (event) =>{
+	console.log(event.clientX, event.clientY)
+})
+```
+
+While we could use those values, adjusting is much preferred. By adjusting, it means to have 1 amplitude and that the value can be both negative and positive.
+
+If we only focus on the x value, that would mean that:
+- If the cursor is on the far left of the canvas, you should get -0.5
+- If the cursor is at the center of the canvas, you should get 0
+- If the cursor is on the far right of the canvas, you should get 0.5
+
+While this is not mandatory, it helps to have clean values like that.
+
+Just like sizes variable, you can create a cursor variable with default x and y properties and the update those properties in the mousemove callback:
+
+```
+// Cursor
+const cursor = {
+	x: 0,
+	y: 0
+}
+
+window.addEventListener('mousemove', (event) =>{
+	cursor.x = event.clientX / sizes.width - 0.5
+	cursor.y = event.clientY / sizes.height - 0.5
+	
+	console.log(cursor.x, cursor.y)
+})
+```
+
+
+Dividing the event.clientx by sizes.width will give us a value between 0 and 1 (if we keep the cursor above the canvas) while subtracting 0.5 will give a value between -0.5 and 0.5.
+
+We can now have the mouse position stored in the cursor object variable, and can update the position of the camera in the tick function:
+
+```
+const tick = () =>{
+	// ...
+	
+	// Updated Camera
+	camera.position.x = cursor.x
+	camera.position.y = cursor.y
+	
+	// ...
+}
+```
+
+The above will work but the axes movements will be wrong. This is due to the position.y axis being positive when going upward in Three.js but the clientY axis being positive when going downward in the webpage.
+
+To fix this, simply invert the cursor.y while updating it by adding a - in front of the whole formula (don't forget the parentheses though):
+
+```
+window.addEventListener ('mousemove', (event)=>{
+	cursor.x = event.clientX / sizes.width - 0.5
+	cursor.y = -(event.clientY / sizes.height - 0.5)
+})
+```
+
+Finally, you can increase the amplitude by multiplying the cursor.x and cursor.y and ask the camera to look at the mesh using the lookAt(...) method:
+
+```
+const tick = () =>{
+	// ...
+	
+	// Updated Camera 2
+	camera.position.x = cursor.x * 5
+	camera.position.y = cursor.y * 5
+	camera.lookAt(mesh.position)
+	
+}
+```
+
+We can go even further by doing a full rotation of the camera around the mesh by using Math.sin(...) and Math.cos(...) 
+
+Sin and Cos, when combined and used with the same angle, enable us to place things on a circle. To do a full rotation, that angle must have an amplitude of 2 times #pi. *Quick notes a full rotation is called a #tau but we don't have an access to this value in JavaScript and we have to use #pi instead*
+
+
+To increase the radius of that circle, you can simply multiply the result of Math.sin(...) and Math.cos(...):
+
+```
+const tick = () =>
+{
+	// ...
+	
+	// Updated Camera 3
+	camera.position.x = Math.sin(cursor.x * Math.PI * 2) * 2
+	camera.position.z = Math.cos(cursor.x * Math.PI * 2) * 2
+	camera.position.y = cursor.y * 3
+	camera.lookAt(mesh.position)
+	
+	// ...
+}
+
+tick()
+```
+
 
 

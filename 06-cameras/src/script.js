@@ -26,14 +26,30 @@ scene.add(mesh)
 const axesHelper = new THREE.AxesHelper(2)
 scene.add(axesHelper)
 
-// Camera
-//const camera = new THREE.OrthographicCamera(-1, 1,1, -1, 0.1, 100)
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 1, 100)
+// Cursor
+const cursor ={
+  x: 0,
+  y:0
+}
 
-camera.position.x = 2
-camera.position.y = 2
-camera.position.z = 2
-camera.lookAt(mesh.position)
+window.addEventListener('mousemove', (event)=>{
+  cursor.x = event.clientX / sizes.width - 0.5
+  cursor.y = - (event.clientY / sizes.height - 0.5)
+
+  console.log(cursor.x, cursor.y)
+
+})
+
+// Camera
+
+//const aspectRatio = sizes.Width/sizes.Height 
+//const camera = new THREE.OrthographicCamera(-1 * aspectRatio, 1 * aspectRatio, 1, -1, 0.1, 100)
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 1, 1000)
+
+// camera.position.x = 2
+// camera.position.y = 2
+camera.position.z = 3
+// camera.lookAt(mesh.position)
 scene.add(camera)
 
 // Renderer
@@ -49,8 +65,13 @@ const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
 
+    // Update Camera
+    camera.position.x = Math.sin(cursor.x * Math.PI * 2) * 2
+    camera.position.z = Math.cos(cursor.x * Math.PI * 2) * 2
+    camera.position.y = cursor.y * 3
+    camera.lookAt(mesh.position)
     // Update objects
-    mesh.rotation.y = elapsedTime;
+    //mesh.rotation.y = elapsedTime;
 
     // Render
     renderer.render(scene, camera)
