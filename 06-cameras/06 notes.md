@@ -246,5 +246,57 @@ const controls = new OrbitControls(camera, canvas)
 
 You can now drag and drop using both the left mouse or the right mouse to move the camera, and you can scroll up or down to zoom in or out. It's much easier than our custom code, and it comes with more controls.
 
+---
+### Target
+By default, the camera is looking at the center of the scene. We can change that with the target property. 
 
+This property is a [Vector3](https://threejs.org/docs/#api/en/math/Vector3), meaning that we can change its x, y, and z properties.
+If we want the [OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls) to look above the cube by default, we just have to increase the y property:
 
+```
+controls.target.y = 2
+```
+
+But this won't work just like that because we need to tell the OrbitControl to update itself. And we can do that by calling the update method right after.
+
+```
+controls.target.y = 2
+controls.update()
+```
+
+This is note very useful in our case but just because :3
+
+---
+### Damping
+In the documentation of [OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls) there are mentions of damping. The damping will smooth the animation by adding some kind of acceleration and friction formulas (basically ease in and ease out).
+
+To enable damping switch the enableDamping property of controls to true.
+
+In order to work properly, the controls also needs to be updated on each frame by calling controls.update(). You can do that on the tick function:
+
+```
+// Controls
+const controls = new OrbitControls(camera, canvas)
+controls.enableDamping = true
+
+// ...
+const tick =()=>
+{
+	// ...
+	
+	// Update Controls
+	controls.update()
+	
+	// ...
+}
+```
+
+The controls get lot smoother after doing this. Can also use many other methods and properties to customize the controls such as the rotation speed, zoom speed, zoom limit, angle limit, damping strength, and key bindings(yes can use the keyboard).
+
+---
+
+## IMPORTANT: When to use built-in controls?
+
+While controls are handy, they have limitations. If relied too much on them, might end up having to change how the class is working in an unexpected way.
+
+First, make sure to list all the features you need from those controls, then check if the class you're about to use can handle all of those features. If not, you'll have to do it on your own.
