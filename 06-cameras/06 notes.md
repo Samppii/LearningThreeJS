@@ -15,6 +15,7 @@ The #PerspectiveCamera is the one that simulates a real-life camera with perspec
 
 We'll mostly use #OrthographicCamera and #PerspectiveCamera .
 
+---
 ### The PerspectiveCamera
 The #PerspectiveCamera class needs some parameters to be instantiated. For example, you can add third and fourth parameters.
 
@@ -37,7 +38,6 @@ const sizes = {
 	height: 600
 }
 ```
-
 
 #### Near and Far
 The third and fourth parameters are called near and far, correspond to how close and how far the camera can see. *Any object or part of the object closer to the camera than the #near value or further away from the camera than the #far value will not show up on the render.*
@@ -73,6 +73,7 @@ const camera = new THREE.OrthographicCamera(-1 * aspectRatio, 1 * aspectRatio, 1
 
 This will result in a render area width larger than the render area height because our canvas width is larger that its height.
 
+---
 #### Custom Controls
 
 Going back to the #PerspectiveCamera lets move the camera so it faces the cube, and remove the mesh rotation in the mesh function.
@@ -191,6 +192,59 @@ const tick = () =>
 
 tick()
 ```
+
+---
+### Built-in controls
+In the [Three.js documentation](https://threejs.org/docs/index.html#api/en/math/Euler) , there are a lot of pre-made controls. Probably going to use one right now though.
+
+#### FlyControls
+[FlyControls](https://threejs.org/docs/#examples/en/controls/FlyControls) enable moving the camera like if you were on a spaceship. You can rotate on all 3 axes, go forward and go backward.
+
+### FirstPersonControls
+[FirstPersonControls](https://threejs.org/docs/#examples/en/controls/FirstPersonControls) is just like [FlyControls](https://threejs.org/docs/#examples/en/controls/FlyControls), but with a fixed up axis. You can see that like a flying bird view where the bird cannot do a barrel roll. While the FirstPersonControls contains "FirstPerson," it doesn't work like in FPS games.
+
+#### PointerLockControls
+[PointerLockControls](https://threejs.org/docs/#examples/en/controls/PointerLockControls) uses the [pointer lock JavaScript API](https://developer.mozilla.org/docs/Web/API/Pointer_Lock_API). This API hides the cursor, keeps it centered, and keeps sending the movements in the #mousemove event callback. With this API, you can create FPS games right inside the browser. While this class sounds very promising if you want to create that kind of interaction, it'll only handle the camera rotation when the pointer is locked. You'll have to handle the camera position and game physics by yourself.
+
+#### OrbitControls
+[OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls) is very similar to the controls from the previous exercise/ 05 notes. You can rotate around a point with the left mouse, translate laterally using the right mouse, and zoom in or out using the wheel.
+
+#### TrackballControls
+[TrackballControls](https://threejs.org/docs/#examples/en/controls/TrackballControls) is just like [OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls) but there are no limits in terms of vertical angle. You can keep rotating and do spins with the camera even if the scene gets upside down.
+
+#### TransformControls
+[TransformControls](https://threejs.org/docs/#examples/en/controls/TransformControls) has nothing to do with the camera. You can use it to add a gizmo to an object to move that object.
+
+#### DragControls
+Just like the [TransformControls](https://threejs.org/docs/#examples/en/controls/TransformControls), [DragControls](https://threejs.org/docs/#examples/en/controls/DragControls) has nothing to do with the camera. You can use it to move the objects on a place facing the camera by drag and dropping them.
+Will most likely only use the [OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls) right now.
+
+---
+### OrbitControls
+Time to comment the part where we update the camera in the tick function.
+
+#### Instantiating
+First, we need to instantiate a variable using the [OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls) class. *Note: Can't use THREE.OrbitControls like all of the other methods here*
+
+The OrbitControls class is part of those classes that are not available by default in the THREE variable. That decision helps to reduce the weight of the library. And this is where Vite template comes in.
+
+The OrbitControls class may not be available in the THREE variable; it is still located in the dependencies folder. To import it, you must provide the path from inside the /node_modules/ folder, which is /three/examples/jsm/controls/OrbitControls.js:
+
+```
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js
+```
+
+After importing, you can instantiate a variable using the class OrbitControls (without the THREE.)
+*Note: Make sure to do that after creating the camera*
+
+For it to work, you must provide the camera and the element in the page that will handle the mouse events as parameters:
+
+```
+// Controls
+const controls = new OrbitControls(camera, canvas)
+```
+
+You can now drag and drop using both the left mouse or the right mouse to move the camera, and you can scroll up or down to zoom in or out. It's much easier than our custom code, and it comes with more controls.
 
 
 
