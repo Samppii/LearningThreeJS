@@ -66,6 +66,16 @@ window.addEventListener('resize', ()=>{
 
 })
 
+// Handling Fullscreen
+window.addEventListener('dblclick',()=>{
+  if(!document.fullscreenElement){
+    canvas.requestFullscreen()
+  }
+  else{
+    document.exitFullscreen()
+  }
+})
+
 /**
  * Animate
  */

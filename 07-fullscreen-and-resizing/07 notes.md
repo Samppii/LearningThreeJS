@@ -191,3 +191,74 @@ window.addEventListener('resize', ()=>{
 })
 ```
 
+---
+### Handle Full-Screen
+Now that the canvas is taking all the available space with the right pixel ratio, we're gonna add support to the fullscreen.
+
+First, we need to to decide what action will trigger the fullscreen mode. It could be an HTML button, but instead, double click this time.
+
+When the double click happens, we will toggle the fullscreen -meaning that if the window is not in fullscreen, a double-click will enable the fullscreen mode, and if the window is already in fullscreen, a double-click will exit fullscreen mode.
+
+First, we need to listen to the double click event, and we can do that with the dbclick event:
+
+```
+window.addEventListener('dblclick', ()=>{
+	console.log('double click')
+})
+```
+
+This even will work on most modern browsers expect for Chrome Android:[https://developer.mozilla.org/docs/Web/API/Element/dblclick_event](https://developer.mozilla.org/docs/Web/API/Element/dblclick_event)
+
+Now that we have our event, we need 3 things:
+- A way to know if it's already in fullscreen
+- A method to go to the fullscreen mode
+- A method to leave the fullscreen mode
+
+To know if we are already in fullscreen or not, we can use document.fullscreenElement:
+
+```
+// Pseudocode logic
+window.addEventListener('dblclick', ()=>
+{
+	if(!document.fullscreenElement){
+		console.log('go fullscreen')
+	}
+	else{
+		console.log('leave fullscreen')
+	}
+})
+```
+
+The method to request the fullscreen is associated with the element. It's because you can choose what will be in fullscreen. It can be the whole page, any DOM element or the < canvas >.
+Use the < canvas > and call the requestFullscreen() method on it:
+
+```
+// Updated Logic
+window.addEventListener('dblclick',()=>
+{
+	if(!document.fullscreenElement){
+		canvas.requestFullscreen()
+	}
+	else
+	{
+		console.log('Leave fullscreen')	
+	}
+})
+```
+
+But the method to leave the fullscreen mode is available directly on the document:
+
+```
+// Updated logic with exit
+window.addEventListener('dblclick', ()=>
+{
+	if(!document.fullscreenElement){
+		canvas.requestFullscreen()
+	}
+	else
+	{
+		document.exitFullscreen()
+	}
+})
+```
+
