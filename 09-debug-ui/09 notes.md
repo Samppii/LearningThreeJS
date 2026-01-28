@@ -141,3 +141,95 @@ gui.add(material, 'wireframe')
 ---
 
 ## Colors
+Handling colors is a bit harder. We need to use addColor(...) instead of add(...) because the color property is not a string, a boolean, or a number. It's an object with various properties because it's an instance of the THREE.JS Color class. Among those properties are r, g, and b, which lil-gui can use to display a nice tweak:
+
+```
+gui.addColor(material, 'color')
+```
+
+You'll be able to see a color property on the debug. But when you take the color value from the tweak and apply it to the color property in the code you end up with a wrong color.
+
+This is because Three.js applies some color management in order to optimize the rendering. As a result, the color value that is being displayed in the tweak isn't the same value as the one being used internally.
+
+There are two ways of dealing this.
+
+### Retrieving the modified color
+The first solution would be retrieving the color used internally by Three.js thanks to the getHexString() method on the Color instance when the tweak value changes.
+
+To start with, we need to be aware of any tweak change. To do that, we can use the onChange() method:
+
+```
+// Pseudocode
+gui 
+	.addColor(material, 'color')
+	.onChange(()=>
+	{
+		console.log('value has changed')
+	})
+```
+
+Next, we need to access the Color instance and we can use the classic material.color or we retrieve a value directly as a parameter of the function:
+
+```
+// More Pseudocode
+gui
+	.addColor(material, 'color')
+	.onChange(()=>
+	{
+		console.log('Value has changed')
+		console.log('material')
+	})
+```
+
+
+Both are the same Color instance from the color property of the material.
+So we can use the value and log the result of the getHexString():
+```
+gui 
+	.addColor(material, 'color')
+	.onChange(()=>
+	{
+		console.log(value.getHexString())
+	})
+```
+
+So, this is the color value that you can safely use in the code.
+
+The problem with this technique is that you need to have the Console open, and this is not handy, especially for designers, or the client.
+
+### Only dealing with non-modified color
+The second solution consists of dealing with the color before it gets modified by Three.js. First, we need to save the color somewhere outside of Three.js for instance, creating an object whose purpose is to hold properties.
+
+```
+const gui = new Gui()
+const debugObject = {}
+```
+
+Then, adding a color property to debugObject before creating the cube, we can immediately send it to the color property of the MeshBasicMaterial:
+
+```
+debugObject.color = '#3a6ea6'
+
+const geometry = new THREE.BoxGeometry(1,1,1,2,2,2)
+const material = new THREE.MeshBasicMaterial({color: debugObject.color, wireframe: false})
+```
+
+By doing that, we have the initial color at only one place. Then, instead of the previous tweak we had on the material.color, we are going to change it to debugObject.color:
+
+```
+gui
+	.addColor(material, 'color')
+	.onChange(()=>{
+		console.log(value.getHexString())	
+	})
+```
+
+And finally, instead of doing a console.log(), we can update the material.color using the set() method:
+
+```
+gui
+	.addColor(material, 'color')
+	.onChange(()=>{
+		material.color.set(debugObject.color)
+	})
+```
