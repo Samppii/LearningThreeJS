@@ -154,6 +154,7 @@ This is because Three.js applies some color management in order to optimize the 
 There are two ways of dealing this.
 
 ### Retrieving the modified color
+
 The first solution would be retrieving the color used internally by Three.js thanks to the getHexString() method on the Color instance when the tweak value changes.
 
 To start with, we need to be aware of any tweak change. To do that, we can use the onChange() method:
@@ -198,6 +199,7 @@ So, this is the color value that you can safely use in the code.
 The problem with this technique is that you need to have the Console open, and this is not handy, especially for designers, or the client.
 
 ### Only dealing with non-modified color
+
 The second solution consists of dealing with the color before it gets modified by Three.js. First, we need to save the color somewhere outside of Three.js for instance, creating an object whose purpose is to hold properties.
 
 ```
@@ -233,3 +235,238 @@ gui
 		material.color.set(debugObject.color)
 	})
 ```
+
+---
+## Function / Button
+
+When we want to trigger instructions on demand, we can do that by sending a property to the tweak which contains a functions. Unfortunately, this means that we can't have a function sitting like this on its own and then send it to lil-gui:
+
+```javascript
+const myFunction = () => {
+	console.log('do something')
+}
+gui.add(myFunction, '???")
+```
+
+But we can add a spin property to the debugObject object we created earlier and integrate a GSAP animation into it:
+
+```javascript
+debugObject.spin =()=>
+{
+	gsap.to(mesh.rotation, {duration: 1, y: mesh.rotation.y + Math.PI * 2})
+}
+```
+
+Finally, we can add the tweak to `debugObject.spin`:
+```javascript
+debugObject.spin =()=>
+{
+	// ...
+}
+
+gui.add(debugObject, 'spin')
+```
+
+The debug-ui will now have a *spin* `button`, and clicking on it will result in your cube doing a 360 degrees rotation.
+
+---
+
+## Tweaking the geometry
+
+```javascript
+const material = new THREE.MeshBasicMaterial({color: '#9c7fe3', wireframe: true })
+```
+
+Checking the BoxGeometry documentation, you'll see that the parameters to control the subdivision are named widthSegments, heightSegments, and depthSegments.
+
+Let's try to add a tweak to the `geometry.widthSegments`:
+
+```javascript
+gui
+	.add(geometry, 'widthSegments')
+	.min(1)
+	.max(20)
+	.step(1)
+```
+
+We'll get an error because `widthSegments` isn't a property of the `geometry`
+`widthSegments` is only a parameter that we send to the `BoxGeometry` when we instantiate it. It'll be used to generate the whole geometry only once.
+
+First, since it's not an actual property, we need to add a `subdivision` property to the `debugObject` object and apply our tweak to it:
+
+```javascript
+debugObject.subdivision = 2
+gui
+	.add(debugObject, 'subdivision')
+	.min(1)
+	.max(20)
+	.step(1)
+```
+
+We named it `subdivision` so that we can use it on all three `widthSegments`, `heightSegments`, and `depthSegments`.
+
+Next, when the tweak value changes, we are going to destroy the old geometry and build a brand-new one. To do that, we are first going to listen to the `onChange` event in the tweak:
+
+```javascript
+gui
+	.add(debugObject, 'subdivision')
+	.min(1)
+	.max(20)
+	.step(1)
+	.onChange(()=>{
+		console.log('subdivision changed')
+	})
+```
+
+But building a geometry is rather a lengthy process for the CPU, which can be triggered a lot if the user drags and drops the range tweak too much.
+
+Instead of using `onChange`, we're going to use `onFinishChange`, which will only be triggered when we stop tweaking value:
+
+```javascript
+gui
+	.add(debugObject, 'subdivision')
+	.min(1)
+	.max(20)
+	.step(1)
+	.onFinishChange(()=>{
+		console.log('subdivision finished changing')	
+	})
+```
+
+After that instead of `console.log()`, we can build a new geometry using `debugObject.subdivision` and associate it with the `mesh` by assigning it to its `geometry` property:
+
+```javascript
+gui
+	.add(debugObject, 'subdivision')
+	.min(1)
+	.max(20)
+	.step(1)
+	.onFinishChange(()=>{
+		mesh.geometry.dispose() // Gets dispose of old geometry
+		mesh.geometry = new THREE.BoxGeometry(1,1,1, debugObject.subdivision, debugObject.subdivision, debugObject.subdivision) // Creates new geometry
+	})
+```
+
+---
+
+## Folders
+
+Imagine that we have a lot more tweaks and the debug UI starts to get crowded. We can separate then into folders by using the `addFolder()` method.
+
+To create a folder, call `addFolder()` and send the name you want for it as the parameter. **Note:** Make sure to do it before the tweaks and save it as `cubeTweaks`:
+
+```javascript
+const cubeTweaks = gui.addFolder('Awesome Cube')
+```
+
+Then, instead of using `gui` to create tweaks, use the `cubeTweaks` variable:
+
+```javascript
+const cubeTweaks = gui.addFolder('Awesome cube') 
+
+cubeTweaks 
+	.add(mesh.position, 'y') 
+	// ... 
+cubeTweaks 
+	.add(mesh, 'visible')
+
+cubeTweaks 
+	.add(material, 'wireframe') 
+cubeTweaks 
+	.addColor(material, 'color') 
+	// ... 
+	
+// ... 
+cubeTweaks .add(debugObject, 'spin') 
+// ... 
+cubeTweaks .add(debugObject, 'subdivision') 
+// ...
+
+```
+
+You can close it by default with the `close()` method:
+
+```javascript
+const cubeTweaks = gui.addFolder('Awesome Cube')
+cubeTweaks.close()
+```
+
+---
+
+## GUI SETUP
+
+lil-gui is flexible, and we can tweak some parameters, methods, and tricks to get the best out of it.
+
+### Width
+You can control the width by sending an object to the `GUI` constructor with a `width` property:
+
+```javascript
+const gui = new GUI({
+	width: 300
+})
+```
+
+### Title
+You can also change the title on top of the panel with the `title` property:
+
+```javascript
+const gui = new GUI({
+	width: 300, 
+	title: 'Nice debug UI'
+})
+```
+
+### Close Folders
+You can close all folders by default with `closeFolders`:
+
+```javascript
+const gui = new GUI({
+	width: 300,
+	title: 'Nice debug UI',
+	closeFolders: true
+})
+```
+
+### Close
+You can close it by calling the `close()` method:
+
+```javascript
+const gui = new GUI({
+	//...
+})
+gui.close()
+```
+
+### Hide
+You can hide it fully by calling the `hide()` method:
+
+```javascript
+const gui = new GUI({
+	width: 300,
+	title: 'Nice debug UI',
+	closeFolders: false,
+})
+// gui.close()
+gui.hide()
+```
+
+### Toggling
+But how do we display once again? The answer is by adding and event listener. Quick solution would be to listen to the `keydown` event and if it's the h key, we toggle it according to the `_hidden` property indicating if it's currently hidden as a boolean:
+
+```javascript
+window.addEventListener('keydown', (event) => 
+{
+	if(event.key == 'h')
+		gui.show(gui._hidden)
+})
+```
+
+### More
+The [lil-gui documentation](https://lil-gui.georgealways.com/) has more setup and features like:
+- Styling
+- Positioning
+- Having the tweak updated if the property changes
+- Other types of tweaks like the Select
+- Etc.
+
+---
