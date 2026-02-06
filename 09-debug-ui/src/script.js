@@ -7,9 +7,19 @@ import GUI from 'lil-gui'
  * Debug
  */
 
-const gui = new GUI()
-const debugObject = {}
+const gui = new GUI({
+  width: 200,
+  title: 'LIL DEBUG UI',
+  closeFolders: true
+})
+gui.close()
+gui.hide()
 
+window.addEventListener('keydown', (event)=>{
+  if(event.key == 'h')
+    gui.show(gui._hidden)
+})
+const debugObject = {}
 
 /**
  * Base
@@ -25,26 +35,48 @@ const scene = new THREE.Scene()
  */
 debugObject.color = '#4dff6a'
 const geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2)
-const material = new THREE.MeshBasicMaterial({ color: debugObject.color })
+const material = new THREE.MeshBasicMaterial({ color: debugObject.color, wireframe: true })
 const mesh = new THREE.Mesh(geometry, material)
 scene.add(mesh)
 
-gui
+const cubeTweaks = gui.addFolder('Awesome Cube')
+
+cubeTweaks
   .add(mesh.position,'y')
   .min(-3)
   .max(3)
   .step(0.01)
   .name('Elevation')
 
-gui.add(mesh,'visible')
-gui.add(material,'wireframe')
+cubeTweaks.add(mesh,'visible')
+cubeTweaks.add(material,'wireframe')
 //gui.addColor(material, 'color')
-gui 
+cubeTweaks 
   .addColor(debugObject, 'color')
   .onChange(()=>{
     material.color.set(debugObject.color)
   })
 
+// Trying to tweak the geometry.widthSegments
+debugObject.subdivision = 2
+cubeTweaks
+  .add(debugObject, 'subdivision')
+  .min(1)
+  .max(20)
+  .step(1)
+  .onFinishChange(()=>{
+    mesh.geometry.dispose()
+    mesh.geometry = new THREE.BoxGeometry(1,1,1, debugObject.subdivision, debugObject.subdivision, debugObject.subdivision)
+  })
+
+
+// Spin Function
+debugObject.spin =()=>
+{
+  gsap.to(mesh.rotation, {duration: 1, y: mesh.rotation.y + Math.PI * 2})
+}
+
+cubeTweaks.add(debugObject, 'spin')
 
 /**
  * Sizes
